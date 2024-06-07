@@ -1,21 +1,40 @@
-from typing import Union
+BAZA = "BAZA.txt"
 
 
-def login_and_password() -> (tuple):
+def begin() -> None:
     """
-    Проверяем логин и пароль на допустимое количество символов.
+    Производится выбор действия с помощью цифр: 1 - регистрация,
+    2 - авторизация, 3 - выход. Также проверяется на правильность
+    введения определённого типа данных и символов, указанных в
+    приветственном тексте переменной question_to_the_user.
     """
-    question_to_the_user = int(
-        input(
-            'Здравствуйте! Вы хотите зарегистрироваться или авторизоваться?'
-            ' Если хотите зарегистрироваться-напишите "1",'
-            ' а если хотите авторизоваться-напишите "2": '
+    try:
+        question_to_the_user = int(
+            input(
+                " Если хотите зарегистрироваться - напишите 1,"
+                " если хотите авторизоваться - 2, а если хотите выйти - 3: "
+            )
         )
-    )
-    while 1 < question_to_the_user > 2:
-        question_to_the_user = int(input("Введите заново: "))
-        if question_to_the_user == 2 or question_to_the_user == 1:
-            break
+        if question_to_the_user == 1:
+            registration()
+        elif question_to_the_user == 2:
+            authorization()
+        elif question_to_the_user == 3:
+            print("Досвидание!")
+            exit()
+        else:
+            print("Введённое число должно быть в диапозоне от 1 до 3!")
+            begin()
+    except ValueError:
+        print("Введены не цифры!")
+        begin()
+
+
+def check_login_and_password() -> tuple[str, str]:
+    """
+    Проверяем логин и пароль на допустимое количество символов. При успешной
+    длине логина и пароля возвращаем их.
+    """
     login = input("Введите логин: ")
     password = input("Введите пароль: ")
     while 3 > len(login) or len(login) > 20:
@@ -46,54 +65,46 @@ def login_and_password() -> (tuple):
             )
             password = input("Напишите верный пароль: ")
     print("Ваш пароль по нашим стандартам написания верный.")
-    return question_to_the_user, login, password
+    return login, password
 
 
-def saving_file(login: Union[int, str], password: Union[int, str]) -> None:
+def registration() -> None:
     """
-    Сохраняем логин и пароль, если пользователь регистрируется.
+    Действия при регистрации пользователя.
+
+    Получаем  логин и пароль с функции check_login_and_password.
+    Записываем данные в файл BAZA и пишем пользователю об успешной
+    регистрации.
     """
-    with open("BAZA.txt", "a", encoding="utf-8") as file:
+    login, password = check_login_and_password()
+    with open(BAZA, "a", encoding="utf-8") as file:
         file.write(f"{login} {password}\n")
         print("Ваши данные успешно записаны,"
               " теперь вы есть в нашей базе данных.")
-        exit()
+        begin()
 
 
-def main(
-    question_to_the_user: Union[int],
-    login: Union[int, str],
-    password: Union[int, str]) -> None:
+def authorization() -> None:
     """
+    Действия при авторизации пользователя.
+
+    Получаем  логин и пароль с функции check_login_and_password.
     Проверяем введёные данные пользователем при авторизации.
-    Если пользователя нет в базе данных, ему предлагается зарегистрироваться
-    или выйти из программы.
+    Если пользователя нет в базе данных, ему предлагается зарегистрироваться,
+    авторизоваться заново или выйти из программы.
     """
-    with open("BAZA.txt", "r", encoding="utf-8") as file:
+    login, password = check_login_and_password()
+    with open(BAZA, "r", encoding="utf-8") as file:
         for i in file.read().split("\n"):
             user = i.split(" ")
-            if question_to_the_user == 1:
-                saving_file(login, password)
             if login == user[0] and password == user[1]:
                 print(f"Wellcome, {user[0]}")
                 exit()
-            if question_to_the_user == 3:
-                print("Досвидание!")
-        if login != user[0] or password != user[1]:
-            print(
-                "Вы не прошли авторизацию. Вас нет в нашей базе данных."
-                " Вы можете зарегистрироваться, нажав 1."
-                " Если же захотите выйти-нажмите 3."
-            )
-            question_to_the_user = int(input("Вводите: "))
-            if question_to_the_user == 3:
-                print("Досвидание!")
-            if question_to_the_user == 1:
-                saving_file(login, password)
 
+            if login != user[0] or password != user[1]:
+                print("Вы не прошли авторизацию. Вас нет в нашей базе данных.")
+                begin()
 
-question_to_the_user, login, password = login_and_password()
-main(question_to_the_user, login, password)
 
 if __name__ == "__main__":
-    main(question_to_the_user, login, password)
+    begin()
